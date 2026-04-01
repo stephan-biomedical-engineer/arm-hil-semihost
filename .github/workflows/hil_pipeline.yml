@@ -9,6 +9,8 @@ jobs:
   build-and-test:
     # A tag 'self-hosted' é o que direciona a nuvem para o seu Arch Linux
     runs-on: self-hosted
+    env:
+      FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
     steps:
     - name: Checkout do código
