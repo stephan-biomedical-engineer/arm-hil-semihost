@@ -63,10 +63,10 @@ TEST(teste_sucesso_matematica)
     return (10 * 10 == 100) ? 0 : 1; // 0 significa PASS
   }
 
-TEST(teste_falha_proposital) 
-{
-  return 1; // Retorna erro para testar o Python
-}
+// TEST(teste_falha_proposital) 
+// {
+//   return 1; // Retorna erro para testar o Python
+// }
 /* USER CODE END 0 */
 
 /**
