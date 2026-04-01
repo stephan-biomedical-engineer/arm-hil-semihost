@@ -1,0 +1,38 @@
+name: HIL Firmware Validation
+
+# Dispara o pipeline sempre que um código for empurrado para a branch main
+on:
+  push:
+    branches: [ "main" ]
+
+jobs:
+  build-and-test:
+    # A tag 'self-hosted' é o que direciona a nuvem para o seu Arch Linux
+    runs-on: self-hosted
+
+    steps:
+    - name: Checkout do código
+      uses: actions/checkout@v4
+
+    - name: Compilar Firmware (CMake + GCC ARM)
+      run: |
+        rm -rf build/
+        cmake --preset Debug
+        cmake --build --preset Debug -j$(nproc)
+
+    - name: Executar Testes no Hardware (pyOCD)
+      run: |
+        # Recria o ambiente virtual Python se ele não existir
+        if [ ! -d "PyOCD/debug_env" ]; then
+          python3 -m venv PyOCD/debug_env
+        fi
+        
+        # Ativa o ambiente e garante as dependências
+        source PyOCD/debug_env/bin/activate
+        pip install pyocd
+        
+        # O runner baixa o pack da ST automaticamente, caso seja uma máquina nova
+        pyocd pack install stm32u575zitx
+        
+        # Dispara a automação real na placa
+        python3 PyOCD/runner.py
