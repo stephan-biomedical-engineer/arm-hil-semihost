@@ -19,7 +19,7 @@ jobs:
     - name: Compilar Firmware (CMake + GCC ARM)
       run: |
         rm -rf build/
-        cmake --preset Debug
+        cmake --preset Debug -DENABLE_HIL_TESTS=ON
         cmake --build --preset Debug -j$(nproc)
 
     - name: Executar Testes no Hardware (pyOCD)

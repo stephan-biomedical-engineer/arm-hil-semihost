@@ -54,26 +54,37 @@ target_include_directories(${CMAKE_PROJECT_NAME} PRIVATE
     app/inc
 )
 
-# Add project symbols (macros)
-target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE
-    # Add user defined symbols
-)
-
-# Remove wrong libob.a library dependency when using cpp files
 list(REMOVE_ITEM CMAKE_C_IMPLICIT_LINK_LIBRARIES ob)
 
-# Add linked libraries
-target_link_libraries(${CMAKE_PROJECT_NAME}
-    stm32cubemx
+# --- SISTEMA DE OPÇÕES PARA TESTES HIL ---
+option(ENABLE_HIL_TESTS "Ativa o framework de testes HIL e Semihosting" OFF)
 
-    # Add user defined libraries
-    -lrdimon
-    -lc
-    -lm
-)
-
-
-# Add link options for Semihosting
-target_link_options(${CMAKE_PROJECT_NAME} PRIVATE
-    -specs=rdimon.specs
-)
+if(ENABLE_HIL_TESTS)
+    message(STATUS ">>> MODO HIL ATIVADO: Vinculando Semihosting (-lrdimon) <<<")
+    
+    # Liga a macro para desligar o syscalls.c/sysmem.c da ST
+    target_compile_definitions(${CMAKE_PROJECT_NAME} PRIVATE USE_SEMIHOSTING)
+    
+    # Injeta a biblioteca do Semihosting no Linker
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -specs=rdimon.specs)
+    
+    # Adiciona as bibliotecas base e a do Semihosting
+    target_link_libraries(${CMAKE_PROJECT_NAME}
+        stm32cubemx
+        -lrdimon
+        -lc
+        -lm
+    )
+else()
+    message(STATUS ">>> MODO PRODUCAO: Semihosting desligado <<<")
+    
+    # Usa a biblioteca padrão enxuta da ST
+    target_link_options(${CMAKE_PROJECT_NAME} PRIVATE -specs=nano.specs)
+    
+    # Adiciona as bibliotecas base normais
+    target_link_libraries(${CMAKE_PROJECT_NAME}
+        stm32cubemx
+        -lc
+        -lm
+    )
+endif()

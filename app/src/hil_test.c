@@ -10,7 +10,6 @@ extern void initialise_monitor_handles(void);
 
 void run_all_tests(void) 
 {
-    // Inicializa o roteamento de I/O antes de qualquer printf
     initialise_monitor_handles();
 
     test_case_t *current_test = &__tests_start__;
