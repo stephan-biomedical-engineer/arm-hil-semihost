@@ -5,11 +5,11 @@ option(ENABLE_HIL_TESTS "Ativa o framework de testes HIL e Semihosting" OFF)
 
 # Função para injetar a ferramenta em qualquer firmware
 function(inject_hil_framework TARGET_NAME)
+    target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/inc)
     if(ENABLE_HIL_TESTS)
         message(STATUS ">>> [HIL API] MODO HIL ATIVADO: Injetando Semihosting no ${TARGET_NAME} <<<")
         
         target_sources(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/hil_test.c)
-        target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/inc)
         
         target_compile_definitions(${TARGET_NAME} PRIVATE USE_SEMIHOSTING)
         target_link_options(${TARGET_NAME} PRIVATE -specs=rdimon.specs)
