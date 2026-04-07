@@ -8,6 +8,10 @@ function(inject_hil_framework TARGET_NAME)
     target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/inc)
     if(ENABLE_HIL_TESTS)
         message(STATUS ">>> [HIL API] MODO HIL ATIVADO: Injetando Semihosting no ${TARGET_NAME} <<<")
+
+        get_target_property(APP_SOURCES ${TARGET_NAME} SOURCES)
+        list(FILTER APP_SOURCES EXCLUDE REGEX "syscalls\\.c|sysmem\\.c")
+        set_target_properties(${TARGET_NAME} PROPERTIES SOURCES "${APP_SOURCES}")
         
         target_sources(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/hil_test.c)
         
