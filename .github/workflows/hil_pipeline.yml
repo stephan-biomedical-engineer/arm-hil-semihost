@@ -17,6 +17,7 @@ jobs:
       uses: actions/checkout@v4
 
     - name: Compilar Firmware (CMake + GCC ARM)
+      working-directory: ./examples/stm32u5_demo
       run: |
         rm -rf build/
         cmake --preset Debug -DENABLE_HIL_TESTS=ON
@@ -24,17 +25,13 @@ jobs:
 
     - name: Executar Testes no Hardware (pyOCD)
       run: |
-        # Recria o ambiente virtual Python se ele não existir
-        if [ ! -d "PyOCD/debug_env" ]; then
-          python3 -m venv PyOCD/debug_env
+        if [ ! -d "hil_tool/debug_env" ]; then
+          python3 -m venv hil_tool/debug_env
         fi
         
-        # Ativa o ambiente e garante as dependências
-        source PyOCD/debug_env/bin/activate
-        pip install pyocd
-        
-        # O runner baixa o pack da ST automaticamente, caso seja uma máquina nova
+        source hil_tool/debug_env/bin/activate
+        pip install -r hil_tool/requirements.txt
         pyocd pack install stm32u575zitx
         
-        # Dispara a automação real na placa
-        python3 PyOCD/runner.py
+        # Dispara a automação passando o caminho do projeto alvo!
+        python3 hil_tool/runner.py --app examples/stm32u5_demo

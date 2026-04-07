@@ -1,12 +1,15 @@
 import sys
 import time
 import re
+import argparse
 from pyocd.core.helpers import ConnectHelper
 from pyocd.flash.file_programmer import FileProgrammer
 from pyocd.core.target import Target
 from pyocd.debug import semihost
 
-ELF_FILE = "build/Debug/HIL.elf"
+PATH_APP = "examples/stm32u5_demo"
+
+ELF_FILE = f"{PATH_APP}/build/Debug/HIL.elf"
 
 # Classe para interceptar os dados lendo direto da RAM da placa
 class HILConsole:
@@ -35,7 +38,9 @@ class HILConsole:
     def readc(self):
         return -1
 
-def run_hil_tests():
+def run_hil_tests(app_path):
+
+    elf_file = f"{app_path}/build/Debug/HIL.elf"    
     options = {
         "enable_semihosting": False, 
         "semihost_console_type": "console",
@@ -49,7 +54,7 @@ def run_hil_tests():
     with session:
         target = session.board.target
 
-        print("[*] Gravando firmware...")
+        print(f"[*] Gravando firmware: {elf_file}")
         programmer = FileProgrammer(session)
         programmer.program(ELF_FILE)
 
@@ -106,7 +111,18 @@ def parse_results(output):
     return results
 
 if __name__ == "__main__":
-    results = run_hil_tests()
+
+    parser = argparse.ArgumentParser(description="Runner HIL para STM32 via pyOCD")
+    parser.add_argument(
+        "--app", 
+        type=str, 
+        required=True, 
+        help="Caminho relativo para a pasta do projeto (ex: examples/stm32u5_demo)"
+    )
+
+    args = parser.parse_args()
+
+    results = run_hil_tests(args.app)
 
     print("\n" + "="*30)
     print("RESUMO DOS TESTES")
