@@ -13,12 +13,16 @@ typedef struct
     test_fn_t fn;
 } test_case_t;
 
-// Macro para registrar o teste na seção ".tests"
+// Macro para registrar o teste na seção "hil_tests"
 #define TEST(name) \
     int name(void); \
-    __attribute__((section(".tests"), used)) \
+    __attribute__((section("hil_tests"), used)) \
     const test_case_t _test_##name = {#name, name}; \
     int name(void)
+
+// Variáveis injetadas automaticamente pelo GCC (sem linker script)
+extern test_case_t __start_hil_tests;
+extern test_case_t __stop_hil_tests;
 
 void run_all_tests(void);
 

@@ -12,7 +12,6 @@ function(inject_hil_framework TARGET_NAME)
         target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/inc)
         
         target_compile_definitions(${TARGET_NAME} PRIVATE USE_SEMIHOSTING)
-        target_link_options(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hil_linker.ld)
         target_link_options(${TARGET_NAME} PRIVATE -specs=rdimon.specs)
         target_link_libraries(${TARGET_NAME} -lrdimon -lc -lm)
     else()
