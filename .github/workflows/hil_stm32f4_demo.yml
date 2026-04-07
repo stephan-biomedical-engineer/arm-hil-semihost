@@ -7,6 +7,8 @@ on:
       - 'examples/stm32f4_demo/**'
       - 'hil_api/**'
       - 'hil_tool/**'
+      
+  workflow_dispatch:
 
 jobs:
   build-and-test:
