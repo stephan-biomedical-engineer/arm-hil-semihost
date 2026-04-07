@@ -8,13 +8,11 @@ function(inject_hil_framework TARGET_NAME)
     if(ENABLE_HIL_TESTS)
         message(STATUS ">>> [HIL API] MODO HIL ATIVADO: Injetando Semihosting no ${TARGET_NAME} <<<")
         
-        # O CMAKE_CURRENT_FUNCTION_LIST_DIR garante que os caminhos serão sempre relativos 
-        # a este arquivo hil.cmake, não importando de onde o exemplo seja chamado!
         target_sources(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/src/hil_test.c)
         target_include_directories(${TARGET_NAME} PRIVATE ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/inc)
         
-        # Injeta as regras do Semihosting
         target_compile_definitions(${TARGET_NAME} PRIVATE USE_SEMIHOSTING)
+        target_link_options(${TARGET_NAME} PRIVATE -T ${CMAKE_CURRENT_FUNCTION_LIST_DIR}/hil_linker.ld)
         target_link_options(${TARGET_NAME} PRIVATE -specs=rdimon.specs)
         target_link_libraries(${TARGET_NAME} -lrdimon -lc -lm)
     else()

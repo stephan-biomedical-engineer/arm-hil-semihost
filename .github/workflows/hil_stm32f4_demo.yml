@@ -1,13 +1,15 @@
-name: HIL Firmware Validation
+name: HIL Validation - stm32f4_demo
 
-# Dispara o pipeline sempre que um código for empurrado para a branch main
+# Dispara este pipeline apenas se arquivos deste projeto ou da ferramenta mudarem
 on:
   push:
-    branches: [ "main" ]
+    paths:
+      - 'examples/stm32f4_demo/**'
+      - 'hil_api/**'
+      - 'hil_tool/**'
 
 jobs:
   build-and-test:
-    # A tag 'self-hosted' é o que direciona a nuvem para o seu Arch Linux
     runs-on: self-hosted
     env:
       FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
@@ -16,8 +18,8 @@ jobs:
     - name: Checkout do código
       uses: actions/checkout@v4
 
-    - name: Compilar Firmware (CMake + GCC ARM)
-      working-directory: ./examples/stm32u5_demo
+    - name: Compilar Firmware (stm32f4_demo)
+      working-directory: ./examples/stm32f4_demo
       run: |
         rm -rf build/
         cmake --preset Debug -DENABLE_HIL_TESTS=ON
@@ -28,10 +30,8 @@ jobs:
         if [ ! -d "hil_tool/debug_env" ]; then
           python3 -m venv hil_tool/debug_env
         fi
-        
         source hil_tool/debug_env/bin/activate
         pip install -r hil_tool/requirements.txt
-        pyocd pack install stm32u575zitx
         
-        # Dispara a automação passando o caminho do projeto alvo!
-        python3 hil_tool/runner.py --app examples/stm32u5_demo
+        # Inicia a automacao para esta placa especifica
+        python3 hil_tool/runner.py --app examples/stm32f4_demo
