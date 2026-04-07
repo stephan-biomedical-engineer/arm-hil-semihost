@@ -1,8 +1,7 @@
-/* hil_api/inc/hil_test.h */
 #ifndef HIL_TEST_H
 #define HIL_TEST_H
 
-#ifdef HIL_ACTIVE
+#ifdef USE_SEMIHOSTING
     // =========================================================================
     // MODO TESTE (HIL ATIVADO)
     // =========================================================================
@@ -27,7 +26,6 @@
 
     void run_all_tests(void);
     
-    // Macro que o usuário chama no main.c
     #define RUN_HIL_TESTS() run_all_tests()
 
 #else
@@ -35,12 +33,12 @@
     // MODO PRODUÇÃO 
     // =========================================================================
     
-    // Transforma o código do teste em uma função fantasma que o Linker descarta
-    #define TEST(name) static inline void _ignored_test_##name(void)
+    #define TEST(name) static inline int _ignored_test_##name(void)
     
-    // Apaga a chamada do main.c (substitui por nada)
+    static inline void run_all_tests(void) {}
+    
     #define RUN_HIL_TESTS() ((void)0)
 
-#endif // HIL_ACTIVE
+#endif // USE_SEMIHOSTING
 
 #endif // HIL_TEST_H
