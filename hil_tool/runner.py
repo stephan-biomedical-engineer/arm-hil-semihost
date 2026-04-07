@@ -7,10 +7,6 @@ from pyocd.flash.file_programmer import FileProgrammer
 from pyocd.core.target import Target
 from pyocd.debug import semihost
 
-PATH_APP = "examples/stm32u5_demo"
-
-ELF_FILE = f"{PATH_APP}/build/Debug/HIL.elf"
-
 # Classe para interceptar os dados lendo direto da RAM da placa
 class HILConsole:
     def __init__(self, context):
@@ -56,13 +52,12 @@ def run_hil_tests(app_path):
 
         print(f"[*] Gravando firmware: {elf_file}")
         programmer = FileProgrammer(session)
-        programmer.program(ELF_FILE)
+        programmer.program(elf_file)
 
         print("[*] Iniciando infraestrutura de testes...\n")
         
         target_context = target.get_target_context()
         
-        # Injetamos o nosso terminal customizado no agente do pyOCD
         hil_console = HILConsole(target_context)
         io_handler = semihost.InternalSemihostIOHandler()
         
@@ -86,9 +81,8 @@ def run_hil_tests(app_path):
                     target.resume()
                     timeout_counter = 0
                 else:
-                    break # Foi o nosso HALT_EXECUTION() (BKPT 0)
+                    break # HALT_EXECUTION() (BKPT 0)
                     
-            # Analisa o que o nosso terminal interceptou
             if "DONE" in hil_console.captured_output:
                 break
 
