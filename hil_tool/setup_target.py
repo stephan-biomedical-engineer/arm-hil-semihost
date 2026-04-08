@@ -35,16 +35,20 @@ def setup_hil(app_path):
                 f.write(f'include("{hil_cmake_path}")\n')
                 f.write("inject_hil_framework(${CMAKE_PROJECT_NAME})\n")
             print(f"  [+] CMakeLists.txt atualizado.")
+        else:
+            print(f"  [-] HIL já estava configurado no CMake. Ignorando...")
             
     elif build_system == "makefile":
         hil_mk_path = f"{hil_lib_path}/hil_api/hil.mk"
         with open(makefile, "r") as f:
-            content = f.read()
-        if "hil.mk" not in content:
+            content = f.read()            
+        if "INTEGRAÇÃO DO FRAMEWORK HIL" not in content:
             with open(makefile, "a") as f:
                 f.write(f"\n\n# {'='*70}\n# INTEGRAÇÃO DO FRAMEWORK HIL\n")
                 f.write(f"-include {hil_mk_path}\n")
             print(f"  [+] Makefile atualizado.")
+        else:
+            print(f"  [-] HIL já estava configurado no Makefile. Ignorando...")
 
     yaml_dir = ".github/workflows"
     os.makedirs(yaml_dir, exist_ok=True)
