@@ -1,7 +1,9 @@
+import os
 import sys
 import time
 import re
 import argparse
+import glob
 from pyocd.core.helpers import ConnectHelper
 from pyocd.flash.file_programmer import FileProgrammer
 from pyocd.core.target import Target
@@ -36,7 +38,18 @@ class HILConsole:
 
 def run_hil_tests(app_path):
 
-    elf_file = f"{app_path}/build/Debug/HIL.elf"    
+    elf_files = glob.glob(os.path.join(app_path, "build", "*.elf"))
+
+    if not elf_files:
+        print(f"[!] ERRO: Nenhum arquivo .elf encontrado em '{app_path}/build/'")
+        print("    Certifique-se de compilar o projeto antes de rodar o runner.")
+        sys.exit(1)
+
+    if len(elf_files) > 1:
+        print(f"[!] AVISO: Múltiplos arquivos .elf encontrados. Usando: {elf_files[0]}")
+        
+    elf_file = elf_files[0]
+
     options = {
         "enable_semihosting": False, 
         "semihost_console_type": "console",
