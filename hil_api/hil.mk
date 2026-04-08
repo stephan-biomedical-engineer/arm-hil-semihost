@@ -26,4 +26,24 @@ $(HIL_OBJ): hil_framework/hil_api/src/hil_test.c Makefile | $(BUILD_DIR)
     # injetando o objeto diretamente na string LDFLAGS, para que ele chegue no Linker.
     LDFLAGS += $(HIL_OBJ)
 
+    # ======================================================================
+    # ALVO CUSTOMIZADO: flash_test (Execução Local HIL)
+    # ======================================================================
+    
+    # Descobre dinamicamente a pasta onde o hil.mk está e acha a pasta hil_tool
+    HIL_API_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
+    HIL_TOOL_DIR := $(HIL_API_DIR)../hil_tool
+
+    .PHONY: flash_test
+    flash_test: $(BUILD_DIR)/$(TARGET).elf
+	@echo ">>> [HIL API] Preparando ambiente e executando testes locais..."
+	@if [ ! -d "$(HIL_TOOL_DIR)/debug_env" ]; then \
+		echo "Criando ambiente virtual Python..."; \
+		python3 -m venv $(HIL_TOOL_DIR)/debug_env; \
+	fi
+	@bash -c "source $(HIL_TOOL_DIR)/debug_env/bin/activate && \
+		  pip install -q -r $(HIL_TOOL_DIR)/requirements.txt && \
+		  python3 $(HIL_TOOL_DIR)/runner.py --app ."
+
 endif
+
