@@ -3,8 +3,15 @@ import sys
 import argparse
 
 def setup_hil(app_path):
-    app_path = os.path.normpath(app_path)
-    project_name = os.path.basename(app_path)
+    # Transforma o caminho em absoluto para descobrir o nome real da pasta pai
+    # mesmo que o usuário passe "."
+    absolute_path = os.path.abspath(app_path)
+    project_name = os.path.basename(absolute_path)
+    
+    # Se por algum motivo o nome vier vazio (ex: raiz do sistema), define um padrão
+    if not project_name or project_name == ".":
+        project_name = "stm32_project"
+
     cmake_file = os.path.join(app_path, "CMakeLists.txt")
 
     if not os.path.exists(cmake_file):
@@ -14,10 +21,7 @@ def setup_hil(app_path):
 
     print(f"[*] Configurando HIL para o projeto: {project_name}")
 
-    # 1. INJETAR O HIL NO CMAKELISTS.TXT
-    # Calcula o caminho relativo da pasta do app até a hil_api
-    rel_hil_api = os.path.relpath("hil_api", app_path)
-    hil_cmake_path = f"{rel_hil_api}/hil.cmake".replace("\\", "/") # Garante barras de Linux
+    hil_cmake_path = "hil_framework/hil_api/hil.cmake"
 
     with open(cmake_file, "r") as f:
         content = f.read()
@@ -37,18 +41,16 @@ def setup_hil(app_path):
     # 2. GERAR O PIPELINE DO GITHUB ACTIONS
     yaml_dir = ".github/workflows"
     os.makedirs(yaml_dir, exist_ok=True)
+    # Agora o nome será hil_stm32u5_test.yml em vez de hil_..yml
     yaml_file = os.path.join(yaml_dir, f"hil_{project_name}.yml")
 
     yaml_content = f"""name: HIL Validation - {project_name}
 
-# Dispara este pipeline apenas se arquivos deste projeto ou da ferramenta mudarem
 on:
   push:
     paths:
       - '{app_path}/**'
-      - 'hil_api/**'
-      - 'hil_tool/**'
-      
+      - 'hil_framework/**'
   workflow_dispatch:
 
 jobs:
@@ -60,6 +62,8 @@ jobs:
     steps:
     - name: Checkout do código
       uses: actions/checkout@v4
+      with:
+        submodules: recursive # Baixa a sua API automaticamente no CI do usuário
 
     - name: Compilar Firmware ({project_name})
       working-directory: ./{app_path}
@@ -70,20 +74,21 @@ jobs:
 
     - name: Executar Testes no Hardware (pyOCD)
       run: |
-        if [ ! -d "hil_tool/debug_env" ]; then
-          python3 -m venv hil_tool/debug_env
+        HIL_LIB="hil_framework"
+        if [ ! -d "$HIL_LIB/hil_tool/debug_env" ]; then
+          python3 -m venv $HIL_LIB/hil_tool/debug_env
         fi
-        source hil_tool/debug_env/bin/activate
-        pip install -r hil_tool/requirements.txt
+        source $HIL_LIB/hil_tool/debug_env/bin/activate
+        pip install -r $HIL_LIB/hil_tool/requirements.txt
         
-        # Inicia a automacao para esta placa especifica
-        python3 hil_tool/runner.py --app {app_path}
+        # O runner agora é chamado de dentro da pasta da biblioteca
+        python3 $HIL_LIB/hil_tool/runner.py --app {app_path}
 """
     with open(yaml_file, "w") as f:
         f.write(yaml_content)
     
     print(f"  [+] Pipeline CI/CD gerado em: {yaml_file}")
-    print("\n[OK] Projeto integrado ao HIL! Commit as mudancas para rodar o GitHub Actions.")
+    print("\n[OK] Projeto integrado ao HIL!")
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Instalador automatico do HIL para projetos STM32")
@@ -91,7 +96,7 @@ if __name__ == "__main__":
         "--app", 
         type=str, 
         required=True, 
-        help="Caminho relativo para a pasta gerada pelo CubeMX (ex: examples/stm32f411_demo)"
+        help="Caminho relativo para a pasta do projeto (ex: .)"
     )
     
     args = parser.parse_args()

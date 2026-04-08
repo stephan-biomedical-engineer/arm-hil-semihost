@@ -1,39 +1,47 @@
 #!/bin/bash
 
-# Cores para deixar o terminal bonito
+# Cores para o terminal
+RED='\033[0;31m'
 GREEN='\033[0;32m'
 BLUE='\033[0;34m'
-NC='\033[0m' # No Color
+NC='\033[0m'
 
 echo -e "${BLUE}=================================================${NC}"
 echo -e "${BLUE}    Instalador Automático: ARM HIL Framework     ${NC}"
 echo -e "${BLUE}=================================================${NC}\n"
 
-# 1. Verifica se o usuário já tem um repositório Git
+# 0. Verificação de Sanidade: Estamos em um projeto STM32/CMake?
+if [ ! -f "CMakeLists.txt" ]; then
+    echo -e "${RED}[!] ERRO: CMakeLists.txt não encontrado neste diretório!${NC}"
+    echo "    Certifique-se de que o projeto foi gerado com a opção 'CMake' no STM32CubeMX."
+    exit 1
+fi
+
+# 1. Gerenciamento de Git/Submódulo
 if [ ! -d ".git" ]; then
-    echo "[*] Repositório Git não encontrado. Inicializando 'git init'..."
+    echo "[*] Inicializando repositório Git..."
     git init
 fi
 
-# 2. Adiciona o submódulo
-echo "[*] Baixando a ferramenta como submódulo em libs/hil_framework..."
-# Se a pasta já existir, ele apenas atualiza
-if [ ! -d "libs/hil_framework" ]; then
-    git submodule add https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git libs/hil_framework
+echo "[*] Configurando submódulo em hil_framework..."
+if [ ! -d "hil_framework" ]; then
+    git submodule add https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git hil_framework
 else
-    echo "    Submódulo já existe. Atualizando..."
+    echo "    Atualizando submódulo existente..."
     git submodule update --init --recursive
 fi
 
-# 3. Dispara a mágica do Python
-echo -e "\n[*] Acionando o integrador (setup_target.py)..."
+# 2. Execução do Integrador Python
+echo -e "\n[*] Acionando o integrador..."
 if command -v python3 &>/dev/null; then
-    python3 libs/hil_framework/hil_tool/setup_target.py --app .
+    # O 'if !' garante que se o python der erro, o bash para aqui
+    if ! python3 hil_framework/hil_tool/setup_target.py --app .; then
+        echo -e "${RED}[!] Falha na integração do CMake/YAML.${NC}"
+        exit 1
+    fi
 else
-    echo "[!] ERRO: python3 não encontrado no sistema."
+    echo -e "${RED}[!] ERRO: python3 não encontrado.${NC}"
     exit 1
 fi
 
 echo -e "\n${GREEN}[OK] Instalação concluída com sucesso!${NC}"
-echo "     -> Verifique o seu CMakeLists.txt"
-echo "     -> Verifique a pasta .github/workflows/"
