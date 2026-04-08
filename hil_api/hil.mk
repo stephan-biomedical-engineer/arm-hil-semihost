@@ -1,22 +1,18 @@
 # hil_framework/hil_api/hil.mk
 
 ifeq ($(ENABLE_HIL), 1)
-    $(info >>> [HIL API] MODO HIL ATIVADO: Injeção de dependências <<<)
+    $(info >>> [HIL API] MODO HIL ATIVADO: Sincronizando dependências <<<)
 
     C_SOURCES := $(filter-out %/syscalls.c %/sysmem.c, $(C_SOURCES))
     LIBS := $(filter-out -lnosys, $(LIBS))
     LDFLAGS := $(filter-out -specs=nano.specs, $(LDFLAGS))
 
-    C_DEFS += -DUSE_SEMIHOSTING -DHIL_ACTIVE
+    C_SOURCES += hil_framework/hil_api/src/hil_test.c
     C_INCLUDES += -Ihil_framework/hil_api/inc
-    
+
+    vpath hil_test.c hil_framework/hil_api/src
+
+    C_DEFS += -DUSE_SEMIHOSTING -DHIL_ACTIVE
     LIBS += -lrdimon
     LDFLAGS += --specs=rdimon.specs
-
-    HIL_OBJ = $(BUILD_DIR)/hil_test.o
-    OBJECTS := $(filter-out $(HIL_OBJ), $(OBJECTS)) $(HIL_OBJ)
-
-    $(BUILD_DIR)/hil_test.o: hil_framework/hil_api/src/hil_test.c Makefile | $(BUILD_DIR)
-	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/hil_test.lst $< -o $@
-
 endif
