@@ -3,12 +3,19 @@
 ifeq ($(ENABLE_HIL), 1)
     $(info >>> [HIL API] MODO HIL ATIVADO: Injeção Definitiva <<<)
 
+    # 1. Descobre dinamicamente a pasta onde este hil.mk está
+    HIL_API_DIR := $(patsubst %/,%,$(dir $(lastword $(MAKEFILE_LIST))))
+    HIL_TOOL_DIR := $(HIL_API_DIR)/../hil_tool
+
     C_SOURCES := $(filter-out %/syscalls.c %/sysmem.c, $(C_SOURCES))
     LIBS := $(filter-out -lnosys, $(LIBS))
     LDFLAGS := $(filter-out -specs=nano.specs, $(LDFLAGS))
 
     C_DEFS += -DUSE_SEMIHOSTING -DHIL_ACTIVE
-    C_INCLUDES += -Ihil_framework/hil_api/inc
+    
+    # 2. Usa a variável dinâmica nos Includes
+    C_INCLUDES += -I$(HIL_API_DIR)/inc
+    
     LIBS += -lrdimon
     LDFLAGS += --specs=rdimon.specs
 
@@ -18,22 +25,18 @@ ifeq ($(ENABLE_HIL), 1)
     # Nós avisamos o Make que o .elf também depende do nosso novo arquivo .o
     $(BUILD_DIR)/$(TARGET).elf: $(HIL_OBJ)
 
-$(HIL_OBJ): hil_framework/hil_api/src/hil_test.c Makefile | $(BUILD_DIR)
+# 3. Usa a variável dinâmica na regra de compilação!
+$(HIL_OBJ): $(HIL_API_DIR)/src/hil_test.c Makefile | $(BUILD_DIR)
 	@echo "Compilando HIL API: $<"
 	$(CC) -c $(CFLAGS) -Wa,-a,-ad,-alms=$(BUILD_DIR)/hil_test.lst $< -o $@
 
     # Injetamos o nosso objeto na lista final que é passada para o Linker (LDFLAGS/CC)
-    # injetando o objeto diretamente na string LDFLAGS, para que ele chegue no Linker.
     LDFLAGS += $(HIL_OBJ)
 
     # ======================================================================
     # ALVO CUSTOMIZADO: flash_test (Execução Local HIL)
     # ======================================================================
     
-    # Descobre dinamicamente a pasta onde o hil.mk está e acha a pasta hil_tool
-    HIL_API_DIR := $(dir $(lastword $(MAKEFILE_LIST)))
-    HIL_TOOL_DIR := $(HIL_API_DIR)../hil_tool
-
     .PHONY: flash_test
     flash_test: $(BUILD_DIR)/$(TARGET).elf
 	@echo ">>> [HIL API] Preparando ambiente e executando testes locais..."
@@ -46,4 +49,3 @@ $(HIL_OBJ): hil_framework/hil_api/src/hil_test.c Makefile | $(BUILD_DIR)
 		  python3 $(HIL_TOOL_DIR)/runner.py --app ."
 
 endif
-
