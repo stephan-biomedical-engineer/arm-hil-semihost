@@ -83,10 +83,6 @@ def setup_hil(app_path, is_internal=False):
     yaml_content = f"""name: HIL Validation - {project_name}
 
 on:
-  push:
-    paths:
-      - '{app_path}/**'
-{trigger_paths}
   workflow_dispatch:
 
 jobs:
