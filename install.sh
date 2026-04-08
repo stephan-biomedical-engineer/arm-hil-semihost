@@ -10,10 +10,10 @@ echo -e "${BLUE}=================================================${NC}"
 echo -e "${BLUE}    Instalador Automático: ARM HIL Framework     ${NC}"
 echo -e "${BLUE}=================================================${NC}\n"
 
-# 0. Verificação de Sanidade: Estamos em um projeto STM32/CMake?
-if [ ! -f "CMakeLists.txt" ]; then
-    echo -e "${RED}[!] ERRO: CMakeLists.txt não encontrado neste diretório!${NC}"
-    echo "    Certifique-se de que o projeto foi gerado com a opção 'CMake' no STM32CubeMX."
+# 0. Verificação de Sanidade: Estamos em um projeto STM32/CMake ou STM32/Makefile?
+if [ ! -f "CMakeLists.txt" ] && [ ! -f "Makefile" ]; then
+    echo -e "${RED}[!] ERRO: Nenhum sistema de build (CMake ou Makefile) detectado!${NC}"
+    echo "    Gere o projeto no STM32CubeMX primeiro."
     exit 1
 fi
 
