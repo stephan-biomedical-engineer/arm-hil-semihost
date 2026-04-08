@@ -38,8 +38,12 @@ class HILConsole:
 
 def run_hil_tests(app_path):
 
-    elf_files = glob.glob(os.path.join(app_path, "build", "*.elf"))
+    # Ativa a busca recursiva adicionando "**" e recursive=True
+    elf_files = glob.glob(os.path.join(app_path, "build", "**", "*.elf"), recursive=True)
 
+    # (Opcional) Filtra lixos de compilação interna do CMake
+    elf_files = [f for f in elf_files if "CMakeFiles" not in f]
+    
     if not elf_files:
         print(f"[!] ERRO: Nenhum arquivo .elf encontrado em '{app_path}/build/'")
         print("    Certifique-se de compilar o projeto antes de rodar o runner.")
