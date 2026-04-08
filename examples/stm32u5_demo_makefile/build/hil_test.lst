@@ -1,0 +1,170 @@
+ARM GAS  /tmp/ccDvldfS.s 			page 1
+
+
+   1              		.cpu cortex-m33
+   2              		.arch armv8-m.main
+   3              		.fpu fpv5-sp-d16
+   4              		.arch_extension dsp
+   5              		.eabi_attribute 27, 1
+   6              		.eabi_attribute 28, 1
+   7              		.eabi_attribute 20, 1
+   8              		.eabi_attribute 21, 1
+   9              		.eabi_attribute 23, 3
+  10              		.eabi_attribute 24, 1
+  11              		.eabi_attribute 25, 1
+  12              		.eabi_attribute 26, 1
+  13              		.eabi_attribute 30, 1
+  14              		.eabi_attribute 34, 1
+  15              		.eabi_attribute 18, 4
+  16              		.file	"hil_test.c"
+  17              		.text
+  18              	.Ltext0:
+  19              		.cfi_sections	.debug_frame
+  20              		.file 1 "../../hil_api/src/hil_test.c"
+  21              		.section	.rodata.run_all_tests.str1.4,"aMS",%progbits,1
+  22              		.align	2
+  23              	.LC0:
+  24 0000 54455354 		.ascii	"TEST:%s:%d\012\000"
+  24      3A25733A 
+  24      25640A00 
+  25              		.align	2
+  26              	.LC1:
+  27 000c 444F4E45 		.ascii	"DONE\000"
+  27      00
+  28              		.section	.text.run_all_tests,"ax",%progbits
+  29              		.align	1
+  30              		.global	run_all_tests
+  31              		.syntax unified
+  32              		.thumb
+  33              		.thumb_func
+  35              	run_all_tests:
+  36              	.LFB3:
+   1:../../hil_api/src/hil_test.c **** #include "hil_test.h"
+   2:../../hil_api/src/hil_test.c **** 
+   3:../../hil_api/src/hil_test.c **** // Declaração obrigatória para o Semihosting no GCC
+   4:../../hil_api/src/hil_test.c **** extern void initialise_monitor_handles(void);
+   5:../../hil_api/src/hil_test.c **** 
+   6:../../hil_api/src/hil_test.c **** #define HALT_EXECUTION() __asm("BKPT #0")
+   7:../../hil_api/src/hil_test.c **** 
+   8:../../hil_api/src/hil_test.c **** void run_all_tests(void) 
+   9:../../hil_api/src/hil_test.c **** {
+  37              		.loc 1 9 1 view -0
+  38              		.cfi_startproc
+  39              		@ args = 0, pretend = 0, frame = 0
+  40              		@ frame_needed = 0, uses_anonymous_args = 0
+  41 0000 10B5     		push	{r4, lr}
+  42              	.LCFI0:
+  43              		.cfi_def_cfa_offset 8
+  44              		.cfi_offset 4, -8
+  45              		.cfi_offset 14, -4
+  10:../../hil_api/src/hil_test.c ****     initialise_monitor_handles();
+ARM GAS  /tmp/ccDvldfS.s 			page 2
+
+
+  46              		.loc 1 10 5 view .LVU1
+  47 0002 FFF7FEFF 		bl	initialise_monitor_handles
+  48              	.LVL0:
+  11:../../hil_api/src/hil_test.c **** 
+  12:../../hil_api/src/hil_test.c ****     // Aponta para a variável mágica gerada pelo GCC
+  13:../../hil_api/src/hil_test.c ****     test_case_t *current_test = &__start_hil_tests;
+  49              		.loc 1 13 5 view .LVU2
+  14:../../hil_api/src/hil_test.c **** 
+  15:../../hil_api/src/hil_test.c ****     // Roda até chegar no fim da seção mágica
+  16:../../hil_api/src/hil_test.c ****     while(current_test < &__stop_hil_tests) 
+  50              		.loc 1 16 5 view .LVU3
+  13:../../hil_api/src/hil_test.c **** 
+  51              		.loc 1 13 18 is_stmt 0 view .LVU4
+  52 0006 094C     		ldr	r4, .L5
+  53              		.loc 1 16 10 view .LVU5
+  54 0008 07E0     		b	.L2
+  55              	.LVL1:
+  56              	.L3:
+  57              	.LBB2:
+  17:../../hil_api/src/hil_test.c ****     {
+  18:../../hil_api/src/hil_test.c ****         int result = current_test->fn();
+  58              		.loc 1 18 9 is_stmt 1 view .LVU6
+  59              		.loc 1 18 34 is_stmt 0 view .LVU7
+  60 000a 6368     		ldr	r3, [r4, #4]
+  61              		.loc 1 18 22 view .LVU8
+  62 000c 9847     		blx	r3
+  63              	.LVL2:
+  64 000e 0246     		mov	r2, r0
+  65              	.LVL3:
+  19:../../hil_api/src/hil_test.c ****         
+  20:../../hil_api/src/hil_test.c ****         // Print exato que o regex do runner.py está esperando
+  21:../../hil_api/src/hil_test.c ****         printf("TEST:%s:%d\n", current_test->name, result);
+  66              		.loc 1 21 9 is_stmt 1 view .LVU9
+  67 0010 54F8081B 		ldr	r1, [r4], #8
+  68              	.LVL4:
+  69              		.loc 1 21 9 is_stmt 0 view .LVU10
+  70 0014 0648     		ldr	r0, .L5+4
+  71              	.LVL5:
+  72              		.loc 1 21 9 view .LVU11
+  73 0016 FFF7FEFF 		bl	printf
+  74              	.LVL6:
+  22:../../hil_api/src/hil_test.c ****         
+  23:../../hil_api/src/hil_test.c ****         current_test++;
+  75              		.loc 1 23 9 is_stmt 1 view .LVU12
+  76              	.L2:
+  77              		.loc 1 23 9 is_stmt 0 view .LVU13
+  78              	.LBE2:
+  16:../../hil_api/src/hil_test.c ****     {
+  79              		.loc 1 16 24 is_stmt 1 view .LVU14
+  80 001a 064B     		ldr	r3, .L5+8
+  81 001c 9C42     		cmp	r4, r3
+  82 001e F4D3     		bcc	.L3
+  24:../../hil_api/src/hil_test.c ****     }
+  25:../../hil_api/src/hil_test.c **** 
+  26:../../hil_api/src/hil_test.c ****     // Gatilho para o Python parar o loop de timeout
+  27:../../hil_api/src/hil_test.c ****     printf("DONE\n");
+  83              		.loc 1 27 5 view .LVU15
+ARM GAS  /tmp/ccDvldfS.s 			page 3
+
+
+  84 0020 0548     		ldr	r0, .L5+12
+  85 0022 FFF7FEFF 		bl	puts
+  86              	.LVL7:
+  28:../../hil_api/src/hil_test.c ****     
+  29:../../hil_api/src/hil_test.c ****     HALT_EXECUTION();
+  87              		.loc 1 29 5 view .LVU16
+  88              		.syntax unified
+  89              	@ 29 "../../hil_api/src/hil_test.c" 1
+  90 0026 00BE     		BKPT #0
+  91              	@ 0 "" 2
+  30:../../hil_api/src/hil_test.c **** }...
+  92              		.loc 1 30 1 is_stmt 0 view .LVU17
+  93              		.thumb
+  94              		.syntax unified
+  95 0028 10BD     		pop	{r4, pc}
+  96              	.LVL8:
+  97              	.L6:
+  98              		.loc 1 30 1 view .LVU18
+  99 002a 00BF     		.align	2
+ 100              	.L5:
+ 101 002c 00000000 		.word	__start_hil_tests
+ 102 0030 00000000 		.word	.LC0
+ 103 0034 00000000 		.word	__stop_hil_tests
+ 104 0038 0C000000 		.word	.LC1
+ 105              		.cfi_endproc
+ 106              	.LFE3:
+ 108              		.text
+ 109              	.Letext0:
+ 110              		.file 2 "../../hil_api/inc/hil_test.h"
+ 111              		.file 3 "/usr/include/newlib/stdio.h"
+ 112              		.file 4 "<built-in>"
+ARM GAS  /tmp/ccDvldfS.s 			page 4
+
+
+DEFINED SYMBOLS
+                            *ABS*:00000000 hil_test.c
+     /tmp/ccDvldfS.s:22     .rodata.run_all_tests.str1.4:00000000 $d
+     /tmp/ccDvldfS.s:29     .text.run_all_tests:00000000 $t
+     /tmp/ccDvldfS.s:35     .text.run_all_tests:00000000 run_all_tests
+     /tmp/ccDvldfS.s:101    .text.run_all_tests:0000002c $d
+
+UNDEFINED SYMBOLS
+initialise_monitor_handles
+printf
+puts
+__start_hil_tests
+__stop_hil_tests
