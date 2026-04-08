@@ -24,3 +24,4 @@ __pycache__/
 .DS_Store
 hil_tool/debug_env/
 examples/stm32u5_demo/build/
+.settings/
