@@ -1,0 +1,16 @@
+{
+    "tests": [
+        {
+            "name": "Soma Basica Injetada via RPC",
+            "function": "rpc_soma_teste",
+            "args": [15, 10],
+            "expected": 40
+        },
+        {
+            "name": "Leitura de Sensor Falsa",
+            "function": "rpc_le_sensor_mock",
+            "args": [2],
+            "expected": 1024
+        }
+    ]
+}

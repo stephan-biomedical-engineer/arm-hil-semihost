@@ -107,31 +107,31 @@ python3 hil_framework/hil_tool/hil_cli.py run
 
 ## 4. Avançado: Injeção de Funções (Inferior Function Call)
 
-Se você não quer escrever a lógica do teste dentro do C, mas sim fazer um script Python "empurrar" valores de teste para o microcontrolador de forma dinâmica, você pode usar a nossa biblioteca de RPC (Remote Procedure Call).
+Se você não quer escrever a lógica do teste dentro do C, mas sim "empurrar" valores para o microcontrolador de forma dinâmica, você pode usar a nossa biblioteca de RPC (Remote Procedure Call). 
 
-Isso é excelente para testes pontuais rápidos, calibração ou *Mocks*.
+Isso é excelente para testes pontuais rápidos, calibração ou *Mocks*. A execução do RPC é 100% automatizada e não exige que você saiba programar scripts extras em Python!
 
-No seu computador, crie um script Python normal (ex: `script_debug.py`):
+### 4.1 Definindo os Testes em JSON
+Crie um arquivo na raiz do seu projeto chamado `rpc_tests.json`. Nele você diz quais funções em C quer testar e quais argumentos passar.
 
-```python
-from pyocd.core.helpers import ConnectHelper
-from hil_framework.hil_tool.hil_rpc import call_target_function
-
-# 1. Conecta com a placa via pyOCD
-session = ConnectHelper.session_with_chosen_probe(blocking=False)
-
-with session:
-    target = session.board.target
-    
-    # Endereço absoluto da sua função C (você acha isso no arquivo .map gerado pelo compilador)
-    ENDERECO_FUNCAO = 0x080012A4  
-    
-    print("Injetando a função na CPU em tempo real...")
-    
-    # 2. Chama a função no microcontrolador passando os argumentos (ex: int param1=10, int param2=25)
-    resultado = call_target_function(target, ENDERECO_FUNCAO, args=[10, 25])
-    
-    print(f"O microcontrolador retornou: {resultado}")
+```json
+{
+    "tests": [
+        {
+            "name": "Soma Basica Injetada via RPC",
+            "function": "rpc_soma_teste",
+            "args": [15, 10],
+            "expected": 40
+        }
+    ]
+}
 ```
 
-Este script vai parar a CPU do STM32 subitamente, salvar o estado da memória, forçar os registradores a calcularem a sua função e depois devolver o sistema ao estado de execução natural, como se nada tivesse acontecido!
+### 4.2 Rodando a Mágica
+Basta chamar o subcomando `rpc` pelo nosso CLI. O framework cuidará de mapear os endereços da memória, conectar-se fisicamente ao ST-Link via pyOCD e orquestrar a Injeção.
+
+```bash
+python3 hil_framework/hil_tool/hil_cli.py rpc --tests rpc_tests.json
+```
+
+O CLI vai parar a CPU do STM32 subitamente, forçar os registradores a calcularem a sua função, verificar se o microcontrolador retornou `40`, imprimir `[ PASS ]` e depois devolver o sistema ao estado de execução natural, como se nada tivesse acontecido!
