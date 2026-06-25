@@ -44,8 +44,7 @@ $(HIL_OBJ): $(HIL_API_DIR)/src/hil_test.c Makefile | $(BUILD_DIR)
 		echo "Criando ambiente virtual Python..."; \
 		python3 -m venv $(HIL_TOOL_DIR)/debug_env; \
 	fi
-	@bash -c "source $(HIL_TOOL_DIR)/debug_env/bin/activate && \
-		  pip install -q -r $(HIL_TOOL_DIR)/requirements.txt && \
-		  python3 $(HIL_TOOL_DIR)/runner.py --app ."
+	@$(HIL_TOOL_DIR)/debug_env/bin/python3 -m pip install -q -r $(HIL_TOOL_DIR)/requirements.txt
+	@$(HIL_TOOL_DIR)/debug_env/bin/python3 $(HIL_TOOL_DIR)/runner.py --app .
 
 endif

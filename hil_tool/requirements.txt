@@ -3,6 +3,7 @@ capstone==5.0.7
 cffi==2.0.0
 cmsis-pack-manager==0.6.0
 colorama==0.4.6
+PyYAML>=6.0
 importlib_metadata==9.0.0
 importlib_resources==6.5.2
 intelhex==2.3.0

@@ -4,6 +4,8 @@ import time
 import re
 import argparse
 import glob
+import json
+import subprocess
 from pyocd.core.helpers import ConnectHelper
 from pyocd.flash.file_programmer import FileProgrammer
 from pyocd.core.target import Target
@@ -36,7 +38,7 @@ class HILConsole:
     def readc(self):
         return -1
 
-def run_hil_tests(app_path):
+def run_hil_tests(app_path, flash_backend="pyocd", probe=None, auto_dump=True, timeout=5.0, stm32_cli_path="STM32_Programmer_CLI"):
 
     # Ativa a busca recursiva adicionando "**" e recursive=True
     elf_files = glob.glob(os.path.join(app_path, "build", "**", "*.elf"), recursive=True)
@@ -67,9 +69,20 @@ def run_hil_tests(app_path):
     with session:
         target = session.board.target
 
-        print(f"[*] Gravando firmware: {elf_file}")
-        programmer = FileProgrammer(session)
-        programmer.program(elf_file)
+        print(f"[*] Gravando firmware: {elf_file} (Backend: {flash_backend})")
+        if flash_backend == "pyocd":
+            programmer = FileProgrammer(session)
+            programmer.program(elf_file)
+        elif flash_backend == "stm32":
+            cmd = [stm32_cli_path, "-c", "port=SWD"]
+            if probe: cmd.extend([f"sn={probe}"])
+            cmd.extend(["-w", elf_file, "-v", "-rst"])
+            subprocess.run(cmd, check=True)
+            time.sleep(1) # Aguarda reset
+        elif flash_backend == "jlink":
+            print("[!] Suporte a J-Link via CLI pendente (fallback para pyOCD).")
+            programmer = FileProgrammer(session)
+            programmer.program(elf_file)
 
         print("[*] Iniciando infraestrutura de testes...\n")
         
@@ -103,10 +116,26 @@ def run_hil_tests(app_path):
             if "DONE" in hil_console.captured_output:
                 break
 
+            if auto_dump:
+                current_results = parse_results(hil_console.captured_output)
+                if any(status != 0 for status in current_results.values()):
+                    print("\n[!] Falha detectada durante a execução! Gerando dump post-mortem...")
+                    target.halt()
+                    print("\n--- CORE REGISTERS ---")
+                    for reg in ['r0', 'r1', 'r2', 'r3', 'r12', 'sp', 'lr', 'pc', 'xpsr']:
+                        try:
+                            val = target.read_core_register(reg)
+                            print(f"{reg.upper()}: 0x{val:08X}")
+                        except:
+                            pass
+                    print("----------------------\n")
+                    break
+
             time.sleep(0.01)
             timeout_counter += 1
-            if timeout_counter > 500: 
-                print("\n[!] Timeout: Placa parou de responder.")
+            max_iters = int(timeout * 100)
+            if timeout_counter > max_iters: 
+                print(f"\n[!] Timeout: Placa parou de responder após {timeout} segundos.")
                 break
 
         target.halt()
@@ -130,10 +159,47 @@ if __name__ == "__main__":
         required=True, 
         help="Caminho relativo para a pasta do projeto (ex: examples/stm32u5_demo)"
     )
+    parser.add_argument("--flash-backend", type=str, default="pyocd", choices=["pyocd", "stm32", "jlink"])
+    parser.add_argument("--probe", type=str, default=None)
+    parser.add_argument("--report-xml", type=str, default=None)
+    parser.add_argument("--report-json", type=str, default=None)
+    parser.add_argument("--no-auto-dump", action="store_true")
+    parser.add_argument("--timeout", type=float, default=5.0, help="Timeout em segundos (padrão: 5.0)")
+    parser.add_argument("--stm32-cli-path", type=str, default="STM32_Programmer_CLI", help="Caminho para o executável do STM32CubeProgrammer")
 
     args = parser.parse_args()
 
-    results = run_hil_tests(args.app)
+    from config import load_config, override_args
+
+    # Carrega configurações do arquivo (YAML ou JSON) e sobrescreve argumentos não fornecidos na CLI
+    cfg = load_config(args.app)
+    args = override_args(args, cfg, sys.argv)
+
+    results = run_hil_tests(
+        args.app, 
+        flash_backend=args.flash_backend, 
+        probe=args.probe, 
+        auto_dump=not args.no_auto_dump,
+        timeout=args.timeout,
+        stm32_cli_path=args.stm32_cli_path
+    )
+
+    if args.report_xml:
+        with open(args.report_xml, 'w') as f:
+            f.write('<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n')
+            f.write(f'  <testsuite name="HIL Tests" tests="{len(results)}">\n')
+            for name, status in results.items():
+                f.write(f'    <testcase classname="hil" name="{name}">\n')
+                if status != 0:
+                    f.write(f'      <failure message="Test failed with code {status}" />\n')
+                f.write('    </testcase>\n')
+            f.write('  </testsuite>\n</testsuites>\n')
+            print(f"[*] Relatório XML salvo em: {args.report_xml}")
+
+    if args.report_json:
+        with open(args.report_json, 'w') as f:
+            json.dump(results, f, indent=4)
+            print(f"[*] Relatório JSON salvo em: {args.report_json}")
 
     print("\n" + "="*30)
     print("RESUMO DOS TESTES")

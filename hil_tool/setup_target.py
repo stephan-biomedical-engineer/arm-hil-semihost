@@ -108,9 +108,8 @@ jobs:
         if [ ! -d "$HIL_LIB/hil_tool/debug_env" ]; then
           python3 -m venv $HIL_LIB/hil_tool/debug_env
         fi
-        source $HIL_LIB/hil_tool/debug_env/bin/activate
-        pip install -q -r $HIL_LIB/hil_tool/requirements.txt
-        python3 $HIL_LIB/hil_tool/runner.py --app {app_path}
+        $HIL_LIB/hil_tool/debug_env/bin/python3 -m pip install -q -r $HIL_LIB/hil_tool/requirements.txt
+        $HIL_LIB/hil_tool/debug_env/bin/python3 $HIL_LIB/hil_tool/runner.py --app {app_path}
 """
     with open(yaml_file, "w") as f:
         f.write(yaml_content)
