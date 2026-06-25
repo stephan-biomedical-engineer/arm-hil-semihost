@@ -1,0 +1,9 @@
+{
+    "flash_backend": "stm32",
+    "stm32_cli_path": "/home/stephan/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI",
+    "probe": "1234567890ABCDEF",
+    "timeout": 300.0,
+    "auto_dump": true,
+    "report_xml": "build/test_report.xml",
+    "report_json": "build/test_report.json"
+}

@@ -1,0 +1,26 @@
+# Exemplo Completo de Configuração YAML (hil.yaml)
+# Coloque este arquivo na raiz do seu projeto (junto ao CMakeLists.txt ou Makefile)
+
+# Define o backend de gravação (Opções: pyocd, stm32, jlink)
+# Padrão: pyocd
+flash_backend: stm32
+
+# (Opcional) Define o caminho absoluto para o executável do gravador
+# Útil se a ferramenta não estiver no PATH do sistema.
+stm32_cli_path: "/home/stephan/STMicroelectronics/STM32Cube/STM32CubeProgrammer/bin/STM32_Programmer_CLI"
+
+# (Opcional) Força a conexão a um gravador específico pelo número de série
+probe: "1234567890ABCDEF"
+
+# Tempo máximo (em segundos) que o framework espera para a execução de todos os testes
+# Padrão: 5.0
+timeout: 300.0
+
+# Habilita ou desabilita o recurso de Post-Mortem Auto-Dump
+# Se true, os registradores (R0-R15, SP, PC, LR) serão impressos na tela se um teste falhar.
+# Padrão: true
+auto_dump: true
+
+# (Opcional) Caminhos para exportar relatórios dos testes
+report_xml: "build/test_report.xml"
+report_json: "build/test_report.json"
