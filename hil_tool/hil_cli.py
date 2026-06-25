@@ -14,7 +14,7 @@ def run_subprocess(cmd, cwd=".", shell=False):
         print(f"[!] ERRO: Comando falhou com código {e.returncode}.")
         sys.exit(e.returncode)
 
-def do_install(app_path, repo):
+def do_install(app_path):
     print("="*50)
     print("    Instalador Automático: ARM HIL Framework")
     print("="*50 + "\n")
@@ -33,7 +33,7 @@ def do_install(app_path, repo):
     print("[*] Configurando submódulo em hil_framework...")
     hil_framework_dir = os.path.join(app_abs, "hil_framework")
     if not os.path.exists(hil_framework_dir):
-        run_subprocess(["git", "submodule", "add", repo, "hil_framework"], cwd=app_abs)
+        run_subprocess(["git", "submodule", "add", "https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git", "hil_framework"], cwd=app_abs)
     else:
         print("    Atualizando submódulo existente...")
         run_subprocess(["git", "submodule", "update", "--init", "--recursive"], cwd=app_abs)
@@ -104,14 +104,20 @@ if __name__ == "__main__":
 
     install_parser = subparsers.add_parser("install", help="Instala e configura o framework HIL no projeto")
     install_parser.add_argument("--app", type=str, default=".", help="Caminho relativo para a pasta do projeto")
-    install_parser.add_argument("--repo", type=str, default="https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git", help="URL ou caminho local do repositório HIL")
 
     run_parser = subparsers.add_parser("run", help="Compila o projeto e executa os testes HIL na placa")
     run_parser.add_argument("--app", type=str, default=".", help="Caminho relativo para a pasta do projeto")
 
+    rpc_parser = subparsers.add_parser("rpc", help="Executa testes de Injeção de Função (RPC) baseados em JSON")
+    rpc_parser.add_argument("--app", type=str, default=".", help="Caminho relativo para a pasta do projeto")
+    rpc_parser.add_argument("--tests", type=str, default="rpc_tests.json", help="Arquivo de testes RPC (Padrão: rpc_tests.json)")
+
     args = parser.parse_args()
 
     if args.command == "install":
-        do_install(args.app, args.repo)
+        do_install(args.app)
     elif args.command == "run":
         do_run(args.app)
+    elif args.command == "rpc":
+        from rpc_runner import run_rpc_tests
+        run_rpc_tests(args.app, args.tests)
