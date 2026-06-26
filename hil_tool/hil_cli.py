@@ -25,22 +25,14 @@ def do_install(app_path):
         print("    Gere o projeto no STM32CubeMX primeiro.")
         sys.exit(1)
 
-    # 1. Gerenciamento de Git/Submódulo
+    # 1. Gerenciamento de Git Básico
     if not os.path.exists(os.path.join(app_abs, ".git")):
         print("[*] Inicializando repositório Git...")
         run_subprocess(["git", "init"], cwd=app_abs)
     
-    print("[*] Configurando submódulo em hil_framework...")
-    hil_framework_dir = os.path.join(app_abs, "hil_framework")
-    if not os.path.exists(hil_framework_dir):
-        run_subprocess(["git", "submodule", "add", "https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git", "hil_framework"], cwd=app_abs)
-    else:
-        print("    Atualizando submódulo existente...")
-        run_subprocess(["git", "submodule", "update", "--init", "--recursive"], cwd=app_abs)
-
     # 2. Execução do Integrador Python
-    print("\n[*] Acionando o integrador...")
-    setup_hil(app_path, is_internal=False)
+    print("\n[*] Acionando o integrador de ambiente...")
+    setup_hil(app_path)
     print("\n[OK] Instalação concluída com sucesso!")
 
 def do_run(app_path):

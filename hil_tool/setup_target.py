@@ -2,7 +2,7 @@ import os
 import sys
 import argparse
 
-def setup_hil(app_path, is_internal=False):
+def setup_hil(app_path):
     absolute_path = os.path.abspath(app_path)
     project_name = os.path.basename(absolute_path)
     if not project_name or project_name == ".":
@@ -23,21 +23,29 @@ def setup_hil(app_path, is_internal=False):
     print(f"[*] Projeto detectado: {project_name} ({build_system.upper()})")
 
     # ==========================================
-    # LÓGICA DE CAMINHOS (INTERNO VS EXTERNO)
+    # LÓGICA DE CAMINHOS DINÂMICOS
     # ==========================================
-    if is_internal:
-        # Se for interno, calculamos o caminho de volta para a raiz do repo
-        hil_lib_path_yaml = "."
+    # Onde este script (setup_target.py) está executando agora?
+    script_abs_path = os.path.abspath(__file__)
+    
+    # A raiz do framework é duas pastas acima deste script (volta hil_tool -> volta raiz)
+    framework_root_abs = os.path.dirname(os.path.dirname(script_abs_path))
+    
+    # Qual a distância entre a raiz do seu app e a raiz do framework?
+    # Ex: se framework estiver em app_path/meu_framework, rel_path = "meu_framework"
+    framework_rel_path = os.path.relpath(framework_root_abs, absolute_path)
+    
+    # Converte caminhos do Windows para Unix-style (barras normais) para o CMake
+    hil_lib_path_yaml = framework_rel_path.replace(os.sep, '/')
+    
+    if hil_lib_path_yaml == ".":
+        # Se estiver rodando os testes internos do próprio repositório
         trigger_paths = f"      - 'hil_api/**'\n      - 'hil_tool/**'"
-        # Calcula como chegar na hil_api saindo de dentro do app_path
-        hil_cmake_path = os.path.relpath("hil_api/hil.cmake", start=app_path)
-        hil_mk_path = os.path.relpath("hil_api/hil.mk", start=app_path)
     else:
-        # Se for usuário final, assume a pasta do submódulo
-        hil_lib_path_yaml = "hil_framework"
-        trigger_paths = f"      - 'hil_framework/**'"
-        hil_cmake_path = "hil_framework/hil_api/hil.cmake"
-        hil_mk_path = "hil_framework/hil_api/hil.mk"
+        trigger_paths = f"      - '{hil_lib_path_yaml}/**'"
+        
+    hil_cmake_path = os.path.join(framework_rel_path, "hil_api", "hil.cmake").replace(os.sep, '/')
+    hil_mk_path = os.path.join(framework_rel_path, "hil_api", "hil.mk").replace(os.sep, '/')
 
     # ==========================================
     # INJEÇÃO NO ARQUIVO DE BUILD
@@ -120,7 +128,6 @@ jobs:
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Instalador automatico do HIL para projetos STM32")
     parser.add_argument("--app", type=str, required=True, help="Caminho relativo para a pasta do projeto")
-    parser.add_argument("--internal", action="store_true", help="Usa caminhos relativos para exemplos dentro do proprio repositorio do framework")
     
     args = parser.parse_args()
-    setup_hil(args.app, args.internal)
+    setup_hil(args.app)

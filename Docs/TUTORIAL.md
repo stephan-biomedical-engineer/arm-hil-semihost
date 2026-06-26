@@ -87,15 +87,21 @@ report_xml: "testes.xml"   # Gera um log JUnit no final
 O framework agora conta com uma linha de comando profissional (CLI) para instalar dependências e rodar tudo de forma limpa.
 
 ### Instalar a infraestrutura no seu projeto:
-Se você está clonando o repositório agora, instale/sincronize os arquivos do framework usando:
+Na raiz do seu projeto, clone este repositório (com o nome que preferir, por exemplo, `arm-hil-semihost` ou `test_engine`) e rode o script de instalação.
+
 ```bash
-python3 hil_framework/hil_tool/hil_cli.py install
+# Baixa o repositório dentro da sua pasta
+git clone https://github.com/stephan-biomedical-engineer/arm-hil-semihost.git
+
+# Roda o instalador apontando para a pasta recém-baixada
+python3 arm-hil-semihost/hil_tool/hil_cli.py install
 ```
+O script se adaptará automaticamente ao nome da pasta que você escolheu!
 
 ### Rodar a bateria de testes:
 Sempre que quiser compilar, flashear o microcontrolador e coletar os dados:
 ```bash
-python3 hil_framework/hil_tool/hil_cli.py run
+python3 arm-hil-semihost/hil_tool/hil_cli.py run
 ```
 **O que acontece por trás das cortinas?**
 1. O CLI invoca seu `Makefile` ou `CMake`.
@@ -131,7 +137,7 @@ Crie um arquivo na raiz do seu projeto chamado `rpc_tests.json`. Nele você diz 
 Basta chamar o subcomando `rpc` pelo nosso CLI. O framework cuidará de mapear os endereços da memória, conectar-se fisicamente ao ST-Link via pyOCD e orquestrar a Injeção.
 
 ```bash
-python3 hil_framework/hil_tool/hil_cli.py rpc --tests rpc_tests.json
+python3 arm-hil-semihost/hil_tool/hil_cli.py rpc --tests rpc_tests.json
 ```
 
 O CLI vai parar a CPU do STM32 subitamente, forçar os registradores a calcularem a sua função, verificar se o microcontrolador retornou `40`, imprimir `[ PASS ]` e depois devolver o sistema ao estado de execução natural, como se nada tivesse acontecido!

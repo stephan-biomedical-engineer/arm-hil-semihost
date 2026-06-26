@@ -26,9 +26,9 @@ def call_target_function(target, symbol_address, args=[]):
             target.write_core_register(f'r{_reg}', args[_reg])
             
         # 4. Define o LR para um endereço de parada seguro
-        # Em Cortex-M, podemos usar um endereço genérico de RAM onde gravamos
+        # Em Cortex-M, endereço genérico de RAM onde gravamos
         # temporariamente a instrução BKPT (0xBE00)
-        RAM_BKPT_ADDR = 0x20000000  # Endereço genérico de RAM
+        RAM_BKPT_ADDR = 0x20000000  # Endereço de RAM
         
         # Lê os 2 bytes originais para restaurar depois
         original_mem = target.read_memory_block8(RAM_BKPT_ADDR, 2)
