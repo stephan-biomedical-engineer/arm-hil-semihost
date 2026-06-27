@@ -56,6 +56,17 @@ def run_hil_tests(app_path, flash_backend="pyocd", probe=None, auto_dump=True, t
         
     elf_file = elf_files[0]
 
+    print(f"[*] Gravando firmware: {elf_file} (Backend: {flash_backend})")
+    if flash_backend == "stm32":
+        cmd = [stm32_cli_path, "-c", "port=SWD"]
+        if probe: cmd.extend([f"sn={probe}"])
+        cmd.extend(["-w", elf_file, "-v", "-rst"])
+        subprocess.run(cmd, check=True)
+        time.sleep(1) # Aguarda reset
+    elif flash_backend == "jlink":
+        print("[!] Suporte a J-Link via CLI pendente (fallback para pyOCD).")
+        flash_backend = "pyocd"
+
     options = {
         "enable_semihosting": False, 
         "semihost_console_type": "console",
@@ -69,18 +80,7 @@ def run_hil_tests(app_path, flash_backend="pyocd", probe=None, auto_dump=True, t
     with session:
         target = session.board.target
 
-        print(f"[*] Gravando firmware: {elf_file} (Backend: {flash_backend})")
         if flash_backend == "pyocd":
-            programmer = FileProgrammer(session)
-            programmer.program(elf_file)
-        elif flash_backend == "stm32":
-            cmd = [stm32_cli_path, "-c", "port=SWD"]
-            if probe: cmd.extend([f"sn={probe}"])
-            cmd.extend(["-w", elf_file, "-v", "-rst"])
-            subprocess.run(cmd, check=True)
-            time.sleep(1) # Aguarda reset
-        elif flash_backend == "jlink":
-            print("[!] Suporte a J-Link via CLI pendente (fallback para pyOCD).")
             programmer = FileProgrammer(session)
             programmer.program(elf_file)
 
